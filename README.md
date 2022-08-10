@@ -5,7 +5,7 @@ Generate icons from emojis
 ## Usage
 
 ```bash
-  cargo run --emoij <EMOJI> --sizes <SIZE>
+  cargo run --emoij <EMOJI> --sizes <SIZES>
   firefox index.html
 ```
 

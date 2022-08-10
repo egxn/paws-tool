@@ -22,12 +22,10 @@ fn main() -> std::io::Result<()> {
     <script>
         function draw(size, emoji, background) {
           const ctx = document.getElementById(`canvas_${size}`).getContext('2d');
-          // ctx.fillStyle = background;
-          // ctx.fillRect(0, 0, size, size);
-          ctx.font = `${size-2}px serif`;
+          ctx.font = `${size-4}px serif`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(emoji, (size / 2), (size / 2));
+          ctx.fillText(emoji, (size / 2), (size / 2) + ((size/2)*0.08) );
         }
         function download(id){
           const link = document.createElement('a');
@@ -52,7 +50,7 @@ fn main() -> std::io::Result<()> {
     }
 
     let content = body.replace("{canvasHtml}", canvas_html.as_str())
-                       .replace("{canvasJs}", canvas_js.as_str());
+                      .replace("{canvasJs}", canvas_js.as_str());
     let mut file = File::create("index.html")?;
     file.write_all(content.as_bytes())?;
     Ok(())
