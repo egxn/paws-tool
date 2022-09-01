@@ -11,7 +11,14 @@ Generate icons from emojis
   firefox ./index.html
 ```
 
+## Using a relase
 
-## Requirements
+``` bash
+  chmod +x paws
+  ./paws --emoji 🐾 --sizes 64,128,256
+  firefox ./index.html
+```
+
+## Dev requirements
 
 * [Rust and Cargo 🦀](https://doc.rust-lang.org/cargo/getting-started/installation.html) 
