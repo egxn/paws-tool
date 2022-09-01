@@ -5,9 +5,12 @@ Generate icons from emojis
 ## Usage
 
 ```bash
-  cargo run --emoij <EMOJI> --sizes <SIZES>
-  firefox index.html
+  cargo update
+  cargo build --release
+  ./target/release/paws --emoji 🐾 --sizes 64,128,256
+  firefox ./index.html
 ```
+
 
 ## Requirements
 

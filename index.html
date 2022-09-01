@@ -1,7 +1,7 @@
 
     <html lang='en'>
     <head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>Paws</title></head>
-    <body><div><canvas width='256' height='256' id='canvas_256'></canvas></div></body>
+    <body><div><canvas width='64' height='64' id='canvas_64'></canvas><canvas width='128' height='128' id='canvas_128'></canvas><canvas width='256' height='256' id='canvas_256'></canvas></div></body>
     <script>
         function draw(size, emoji, background) {
           const ctx = document.getElementById(`canvas_${size}`).getContext('2d');
@@ -16,6 +16,6 @@
           link.href = document.getElementById(`canvas_${id}`).toDataURL();
           link.click();
         }
-        draw(256, '🦑', 'transparent'); download(256);
+        draw(64, '🐾', 'transparent'); download(64);draw(128, '🐾', 'transparent'); download(128);draw(256, '🐾', 'transparent'); download(256);
     </script>
     </html>
