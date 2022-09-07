@@ -1,57 +1,86 @@
 extern crate clap;
-use std::fs::File;
-use std::io::prelude::*;
 use clap::Parser;
+use image::io::Reader as ImageReader;
+use image::{DynamicImage, ImageResult};
+use std::fs::{File, read_to_string};
+use std::io::prelude::*;
 
 #[derive(Parser, Debug)]
-#[clap(about = "Create icons from emojis", version = "0.1.0", author = "@egxn on GitHub")]
+#[clap(
+  about = "Create icons for images or emojis",
+  version = "0.1.0",
+  author = "@egxn on GitHub"
+)]
 struct Icon {
-   #[clap(short = 'e', long = "emoji", required = true, help = "Emoji to icon")]
-   emoji: char,
-   #[clap(short = 's', long = "sizes" , default_value = "64", help = "Icon sizes 64,128,...")]
-   sizes: String,
-   #[clap(short = 'b', long = "background", default_value = "transparent", help = "Background icon color")]
-   background: String,
+  #[clap(short = 'e', long = "emoji", help = "Emoji to icon")]
+  emoji: Option<char>,
+  #[clap(short = 'i', long = "image", help = "Image")]
+  image: Option<String>,
+  #[clap(short = 's', long = "sizes", default_value = "64", help = "Icon sizes (comma separated)")]
+  sizes: String,
+  #[clap(short = 'b', long = "background", default_value = "transparent", help = "Background color")]
+  background: String,
+  #[clap(short = 'o', long = "output", default_value = "icon", help = "Output icon name")]
+  output: String,
 }
 
 fn main() -> std::io::Result<()> {
-    let body = "
-    <html lang='en'>
-    <head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>Paws</title></head>
-    <body><div>{canvasHtml}</div></body>
-    <script>
-        function draw(size, emoji, background) {
-          const ctx = document.getElementById(`canvas_${size}`).getContext('2d');
-          ctx.font = `${size-4}px serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(emoji, (size / 2), (size / 2) + ((size/2)*0.08) );
-        }
-        function download(id){
-          const link = document.createElement('a');
-          link.download = `icon_${id}.png`;
-          link.href = document.getElementById(`canvas_${id}`).toDataURL();
-          link.click();
-        }
-        {canvasJs}
-    </script>
-    </html>";
+  let body: String = read_to_string("./src/template.html")?.parse().unwrap();
 
-    let icon = Icon::parse();
-    let emoji = icon.emoji;
-    let sizes = icon.sizes;
-    let background = icon.background;
-    let mut canvas_html = "".to_owned();
-    let mut canvas_js = "".to_owned();
+  let icon = Icon::parse();
+  let emoji: char = match icon.emoji { Some(emoji) => emoji, None => ' '};
+  let sizes: String = icon.sizes;
+  let background: String = icon.background;
+  let image_path: String = match icon.image { Some(image) => image, None => String::from("") };
+  let output: String = icon.output;
+  let mut canvas_html = "".to_owned();
+  let mut canvas_js = "".to_owned();
+  
+  let mut img_width = 0;
+  let mut img_height = 0;
+  let mut data = Vec::new();
 
-    for size in sizes.split(",") {
-        canvas_html.push_str(&format!("<canvas width='{}' height='{}' id='canvas_{}'></canvas>", size, size, size));
-        canvas_js.push_str(&format!("draw({}, '{}', '{}'); download({});", size, emoji, background, size));
+  let image_decoded: Option<ImageResult<DynamicImage>> = if !image_path.eq("") {
+    Some(ImageReader::open(image_path)?.decode())
+  } else {
+    None
+  };
+
+  match image_decoded {
+    Some(img) => {
+      let img = img.unwrap();
+      img_width = img.width();
+      img_height = img.height();
+      data = img.into_rgba8().into_raw();
     }
+    None => {},
+  }
+  
+  for size in sizes.split(",") {
+    canvas_html.push_str(&format!(
+      "<canvas width='{}' height='{}' id='canvas_{}'></canvas>",
+      size, size, size
+    ));
 
-    let content = body.replace("{canvasHtml}", canvas_html.as_str())
-                      .replace("{canvasJs}", canvas_js.as_str());
-    let mut file = File::create("index.html")?;
-    file.write_all(content.as_bytes())?;
-    Ok(())
+    let draw =  if img_width > 0 && img_height > 0 {
+      format!(
+        "drawImg({}, {}, {:?}, {}); download({}, '{}');",
+        img_width, img_height, data, size, size, output
+      )
+    } else {
+      format!(
+        "drawEmoji({}, '{}', '{}'); download({}, '{}');",
+        size, emoji, background, size, output
+      )
+    };
+
+    canvas_js.push_str(&draw);
+  }
+
+  let content = body
+    .replace("{canvasHtml}", canvas_html.as_str())
+    .replace("{canvasJs}", canvas_js.as_str());
+  let mut file = File::create("icons.html")?;
+  file.write_all(content.as_bytes())?;
+  Ok(())
 }
