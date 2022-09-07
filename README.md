@@ -42,7 +42,7 @@ Create icons from image
       -V, --version    Prints version information
 
   OPTIONS:
-      -s, --size <size>          Size of the icon
+      -s, --sizes <sizes>        Size of the icon
       -o, --output <output>      Output directory
 ```
 

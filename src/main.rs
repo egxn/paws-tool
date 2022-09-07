@@ -25,7 +25,7 @@ struct Icon {
 }
 
 fn main() -> std::io::Result<()> {
-  let body: String = read_to_string("./src/template.html")?.parse().unwrap();
+  let body: String = read_to_string("./src/template")?.parse().unwrap();
 
   let icon = Icon::parse();
   let emoji: char = match icon.emoji { Some(emoji) => emoji, None => ' '};
